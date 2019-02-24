@@ -1,0 +1,84 @@
+﻿;=============================================================================
+;캐릭터 리스트 표시용의 명령 실장군
+;=============================================================================
+;-------------------------------------------------
+;리스트의 캐릭터 데이터를 세팅하는 함수
+;-------------------------------------------------
+;CALLF SET_LIST, [리스트 위치], [캐릭터 번호]
+@SET_LIST(ARG, ARG:1)
+#FUNCTION
+RETURNF LIST_DATA("SET", ARG, ARG:1)
+
+;-------------------------------------------------
+;리스트의 캐릭터 데이터를 세팅하는 함수
+;-------------------------------------------------
+;[변수 등] = GET_LIST([리스트 위치])
+@GET_LIST(ARG)
+#FUNCTION
+RETURNF LIST_DATA("GET", ARG)
+
+;-------------------------------------------------
+;내부에서 사용되는 함수
+;-------------------------------------------------
+;직접 이걸 호출할 필요는 없음
+@LIST_DATA(ARGS, ARG, ARG:1)
+#FUNCTION
+IF ARGS == "SET"
+    LOCAL:ARG = ARG:1
+    RETURNF ARG:1
+ELSEIF ARGS == "GET"
+    RETURNF LOCAL:ARG
+ELSEIF ARGS == "CLEAR"
+    VARSET LOCAL, 0
+    RETURNF -1
+ELSE
+    RETURNF -1
+ENDIF
+
+;-------------------------------------------------
+;리스트를 청소하는 함수
+;-------------------------------------------------
+;CALLF CLEAR_LIST
+@CLEAR_LIST
+#FUNCTION
+RETURNF LIST_DATA("CLEAR")
+
+
+@CHARADATA_LIST, ARG, ARG:2, ARG:3
+;ARG:3 (비트연산) 일부 표시를 켠다. (1: 영양상태, 2: 식단, 4: 체력,기력(을 끈다), 8: 스케쥴,스트레스, 16: 한마디대사, 32: 소질(을 끈다))
+LOCAL:3 = 0
+REPEAT 20
+    LOCAL = GET_LIST(COUNT + ARG * 20)
+    SIF LOCAL == 0
+        CONTINUE
+    IF LOCAL == TARGET
+        PRINT ☆
+    ELSEIF LOCAL == ASSI
+        PRINT ★
+    ELSEIF CFLAG:LOCAL:4 == 4
+        PRINT ◆
+        LOCAL:3 |= 1
+    ELSEIF CFLAG:LOCAL:4 == 8
+        PRINT ▲
+        LOCAL:3 |= 2
+    ELSEIF CFLAG:LOCAL:4 == 16
+        PRINT ■
+        LOCAL:3 |= 4
+    ELSEIF CFLAG:LOCAL:4 & 1024
+        PRINT ▼
+        LOCAL:3 |= 16
+    ELSEIF CFLAG:LOCAL:4 == 2048 || CFLAG:LOCAL:4 == 4096
+        PRINT ▽
+        LOCAL:3 |= 8
+    ELSEIF ISASSI:LOCAL == 1
+        PRINT ●
+    ELSEIF CFLAG:LOCAL:1 == 2
+        PRINT ○
+    ELSE
+        PRINT 　
+    ENDIF
+REND
+IF ARG:2 >= 1
+    DRAWLINE
+    PRINT 　　　☆:조교중 ★:조수 ○:조수가능 ●:전 조수
+ENDIF
